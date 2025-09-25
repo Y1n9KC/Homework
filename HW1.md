@@ -1,169 +1,149 @@
----
+### HW1_1
+#### matlab code
+```matlab
+    clear; clc;
 
+    %% Problem statement parameters setting
+    k = 0.49;
+    C = 0.2174;
+    rho = 2.7;
+    kappa = k / (rho * C);
+    dx = 2;
+    dt = 0.1;
+    L = 10;
+    t_total = 0.2;
+    Nx = L / dx + 1
+    Nt = t_total / dt;
 
----
+    %% Temperature field initialization
+    T = zeros(Nx, Nt + 1);
+    x = linspace(0, L, Nx);
+    T(:, 1) = 0;
+    T(1, :) = 100;
 
-</code></pre>
-<h1 id="hw1">HW1</h1>
-<p>20250929</p>
-<h2 id="hw1_1">HW1_1</h2>
-<pre class=" language-matlab"><code class="prism  language-matlab">clear<span class="token punctuation">;</span> clc<span class="token punctuation">;</span>
+    %% Crank-Nicolson method parameters calculation
+    c = kappa * dt / (dx^2);
+    alpha = c / 2;
+    beta = 1 + c;
+    main_diag = beta  ones(Nx, 1);
+    lower_diag = -alpha  ones(Nx-1, 1);
+    upper_diag = -alpha * ones(Nx-1, 1);
+    main_diag(1) = 1;
+    upper_diag(1) = 0;
+    lower_diag(end) = -alpha;
+    main_diag(end) = 1 + alpha;
+    upper_diag(end) = -alpha;
+    A = diag(main_diag) + diag(lower_diag, -1) + diag(upper_diag, 1);
 
-<span class="token comment">%% Problem statement parameters setting</span>
-k <span class="token operator">=</span> <span class="token number">0.49</span><span class="token punctuation">;</span> 
-C <span class="token operator">=</span> <span class="token number">0.2174</span><span class="token punctuation">;</span>
-rho <span class="token operator">=</span> <span class="token number">2.7</span><span class="token punctuation">;</span>
-kappa <span class="token operator">=</span> k <span class="token operator">/</span> <span class="token punctuation">(</span>rho <span class="token operator">*</span> C<span class="token punctuation">)</span><span class="token punctuation">;</span>
-dx <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">;</span>
-dt <span class="token operator">=</span> <span class="token number">0.1</span><span class="token punctuation">;</span>
-L <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">;</span>
-t_total <span class="token operator">=</span> <span class="token number">0.2</span><span class="token punctuation">;</span>
-Nx <span class="token operator">=</span> L <span class="token operator">/</span> dx <span class="token operator">+</span> <span class="token number">1</span>
-Nt <span class="token operator">=</span> t_total <span class="token operator">/</span> dt<span class="token punctuation">;</span>
+    %% Time-iterative solution
+    for n = 1:Nt
+        b = zeros(Nx, 1);
+        b(1) = T(1, n);
+        for i = 2:Nx-1
+            b(i) = alpha  T(i-1, n) + (1 - c)  T(i, n) + alpha  T(i+1, n);
+        end	
+        b(end) = alpha  T(end-1, n) + (1 - c)  T(end, n) + alpha  T(end-1, n);
+        T(:, n+1) = A </span> b;
+    end
 
-<span class="token comment">%% Temperature field initialization</span>
-T <span class="token operator">=</span> <span class="token function">zeros</span><span class="token punctuation">(</span>Nx<span class="token punctuation">,</span> Nt <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-x <span class="token operator">=</span> <span class="token function">linspace</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> L<span class="token punctuation">,</span> Nx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">T</span><span class="token punctuation">(</span><span class="token operator">:</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token function">T</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token operator">:</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">100</span><span class="token punctuation">;</span>
+    %% Result output and visualization
+    fprintf('Temperature of each node at t = 0.1s（x/cm → T/°C）：\n');
+    for i = 1:Nx
+        fprintf('x=%d → T=%.4f\n', x(i), T(i, end));
+    end
+    figure;
+    plot(x, T(:, end), 'o-', 'LineWidth', 1.5, 'MarkerSize', 8);
+    xlabel('Position x (cm)', 'FontSize', 11);
+    ylabel('Temprature T (°C)', 'FontSize', 11);
+    title('Temperature distribution at t = 0.1s', 'FontSize', 12);
+    grid on;
+```
+#### Result & Output
+Temperature of each node at t = 0.1s（x/cm → T/°C）：
+x=0 → T=100.0000
+x=2 → T=2.0445
+x=4 → T=0.0209
+x=6 → T=0.0002
+x=8 → T=0.0000
+x=10 → T=0.0000
+![Plot HW1_1](./HW1_1(1).png)
 
-<span class="token comment">%% Crank-Nicolson method parameters calculation</span>
+### hw1_2
+#### MATLAB code
+```matlab
+clear; clc;
 
-c <span class="token operator">=</span> kappa <span class="token operator">*</span> dt <span class="token operator">/</span> <span class="token punctuation">(</span>dx<span class="token operator">^</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-alpha <span class="token operator">=</span> c <span class="token operator">/</span> <span class="token number">2</span><span class="token punctuation">;</span>
-beta <span class="token operator">=</span> <span class="token number">1</span> <span class="token operator">+</span> c<span class="token punctuation">;</span>
+%% Problem statement parameters setting
+L = 0.5;
+H = 0.3;
+Nx = 50;
+Ny = 50;
+dx = L / (Nx - 1);
+dy = H / (Ny - 1);
+T_initial = 30;
+T_S1 = 100;
+T_S2 = 200;
+max_iter = 100000;
+tol = 1e-6;
+err = 1;
+iter = 0;
 
-main_diag <span class="token operator">=</span> beta <span class="token operator">*</span> <span class="token function">ones</span><span class="token punctuation">(</span>Nx<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-lower_diag <span class="token operator">=</span> <span class="token operator">-</span>alpha <span class="token operator">*</span> <span class="token function">ones</span><span class="token punctuation">(</span>Nx<span class="token number">-1</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-upper_diag <span class="token operator">=</span> <span class="token operator">-</span>alpha <span class="token operator">*</span> <span class="token function">ones</span><span class="token punctuation">(</span>Nx<span class="token number">-1</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+%% Initialize temperature field
+T = T_initial * ones(Ny, Nx);
+T(:, 1) = T_S1;
+T(1, :) = T_S2;
 
-<span class="token function">main_diag</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
-<span class="token function">upper_diag</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-<span class="token function">lower_diag</span><span class="token punctuation">(</span><span class="token keyword">end</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token operator">-</span>alpha<span class="token punctuation">;</span>
-<span class="token function">main_diag</span><span class="token punctuation">(</span><span class="token keyword">end</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">1</span> <span class="token operator">+</span> alpha<span class="token punctuation">;</span>
-<span class="token function">upper_diag</span><span class="token punctuation">(</span><span class="token keyword">end</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token operator">-</span>alpha<span class="token punctuation">;</span>
+%% Iterative solution
+while iter < max_iter && err > tol
+    err = 0;
+    for i = 2:Ny-1
+        for j = 2:Nx-1
+            T_old = T(i, j);
+            if abs(dx - dy) < 1e-10
+                beta = 1;
+                T(i, j) = 0.25  (T(i+1, j) + T(i-1, j) + T(i, j+1) + T(i, j-1));
+            else
+                dx2 = dx^2; dy2 = dy^2;
+                T(i, j) = ( (T(i+1, j) + T(i-1, j)) / dy2 + (T(i, j+1) + T(i, j-1)) / dx2 ) / (2(1/dx2 + 1/dy2));
+            end
+            err = max(err, abs(T(i,j) - T_old));
+        end
+    end
+    iter = iter + 1;
 
-A <span class="token operator">=</span> <span class="token function">diag</span><span class="token punctuation">(</span>main_diag<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">diag</span><span class="token punctuation">(</span>lower_diag<span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">diag</span><span class="token punctuation">(</span>upper_diag<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    T(end, :) = T(end - 1, :);
+    T(:, end) = T(:, end - 1);
+    T(:, 1) = T_S1;
+    T(1, :) = T_S2;
+end
+fprintf('Converged in %d iterations. Max error = %.2e\n', iter, err);
 
-<span class="token comment">%% Time-iterative solution</span>
-<span class="token keyword">for</span> n <span class="token operator">=</span> <span class="token number">1</span><span class="token operator">:</span>Nt
-	b <span class="token operator">=</span> <span class="token function">zeros</span><span class="token punctuation">(</span>Nx<span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">b</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">for</span> <span class="token number">i</span> <span class="token operator">=</span> <span class="token number">2</span><span class="token operator">:</span>Nx<span class="token number">-1</span>
-		<span class="token function">b</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">)</span> <span class="token operator">=</span> alpha <span class="token operator">*</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">-</span> c<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span> <span class="token operator">+</span> alpha <span class="token operator">*</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token keyword">end</span>	
-	<span class="token function">b</span><span class="token punctuation">(</span><span class="token keyword">end</span><span class="token punctuation">)</span> <span class="token operator">=</span> alpha <span class="token operator">*</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token keyword">end</span><span class="token number">-1</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">-</span> c<span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token keyword">end</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span> <span class="token operator">+</span> alpha <span class="token operator">*</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token keyword">end</span><span class="token number">-1</span><span class="token punctuation">,</span> n<span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">T</span><span class="token punctuation">(</span><span class="token operator">:</span><span class="token punctuation">,</span> n<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">=</span> A <span class="token operator">\</span> b<span class="token punctuation">;</span>
-<span class="token keyword">end</span>
+%% Plot temperature distribution
+figure;
+contourf(linspace(0,L,Nx), linspace(0,H,Ny), T, 50);
+hold on;
+colorbar;
+xlabel('x (m)');
+ylabel('y (m)');
+title('Steady-State Temperature Distribution (°C)');
+axis equal tight;
 
-<span class="token comment">%% Result output and visualization</span>
-<span class="token function">fprintf</span><span class="token punctuation">(</span><span class="token string">'Temperature of each node at t = 0.1s（x/cm → T/°C）：\n'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">for</span> <span class="token number">i</span> <span class="token operator">=</span> <span class="token number">1</span><span class="token operator">:</span>Nx
-	<span class="token function">fprintf</span><span class="token punctuation">(</span><span class="token string">'x=%d → T=%.4f\n'</span><span class="token punctuation">,</span> <span class="token function">x</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> <span class="token keyword">end</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token keyword">end</span>
-
-figure<span class="token punctuation">;</span>
-<span class="token function">plot</span><span class="token punctuation">(</span>x<span class="token punctuation">,</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token operator">:</span><span class="token punctuation">,</span> <span class="token keyword">end</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token string">'o-'</span><span class="token punctuation">,</span> <span class="token string">'LineWidth'</span><span class="token punctuation">,</span> <span class="token number">1.5</span><span class="token punctuation">,</span> <span class="token string">'MarkerSize'</span><span class="token punctuation">,</span> <span class="token number">8</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'Position x (cm)'</span><span class="token punctuation">,</span> <span class="token string">'FontSize'</span><span class="token punctuation">,</span> <span class="token number">11</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'Temprature T (°C)'</span><span class="token punctuation">,</span> <span class="token string">'FontSize'</span><span class="token punctuation">,</span> <span class="token number">11</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'Temperature distribution at t = 0.1s'</span><span class="token punctuation">,</span> <span class="token string">'FontSize'</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-grid on<span class="token punctuation">;</span>
-</code></pre>
-<p>Output :<br>
-Temperature of each node at t = 0.1s（x/cm → T/°C）：<br>
-x=0 → T=100.0000<br>
-x=2 → T=2.0445<br>
-x=4 → T=0.0209<br>
-x=6 → T=0.0002<br>
-x=8 → T=0.0000<br>
-x=10 → T=0.0000<br>
-<img src="https://github.com/Y1n9KC/Homework/blob/master/HW1_1.png" alt="enter image description here"></p>
-<h2 id="hw1_2">HW1_2</h2>
-<pre class=" language-matlab"><code class="prism  language-matlab">clear<span class="token punctuation">;</span> clc<span class="token punctuation">;</span>
-
-<span class="token comment">%% Problem statement parameters setting</span>
-L <span class="token operator">=</span> <span class="token number">0.5</span><span class="token punctuation">;</span>
-H <span class="token operator">=</span> <span class="token number">0.3</span><span class="token punctuation">;</span>
-Nx <span class="token operator">=</span> <span class="token number">50</span><span class="token punctuation">;</span>
-Ny <span class="token operator">=</span> <span class="token number">50</span><span class="token punctuation">;</span>
-dx <span class="token operator">=</span> L <span class="token operator">/</span> <span class="token punctuation">(</span>Nx <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-dy <span class="token operator">=</span> H <span class="token operator">/</span> <span class="token punctuation">(</span>Ny <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-T_initial <span class="token operator">=</span> <span class="token number">30</span><span class="token punctuation">;</span>
-T_S1 <span class="token operator">=</span> <span class="token number">100</span><span class="token punctuation">;</span>
-T_S2 <span class="token operator">=</span> <span class="token number">200</span><span class="token punctuation">;</span>
-max_iter <span class="token operator">=</span> <span class="token number">100000</span><span class="token punctuation">;</span>
-tol <span class="token operator">=</span> <span class="token number">1e-6</span><span class="token punctuation">;</span>
-err <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
-iter <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-
-<span class="token comment">%% Initialize temperature field</span>
-T <span class="token operator">=</span> T_initial <span class="token operator">*</span> <span class="token function">ones</span><span class="token punctuation">(</span>Ny<span class="token punctuation">,</span> Nx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">T</span><span class="token punctuation">(</span><span class="token operator">:</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">=</span> T_S1<span class="token punctuation">;</span>
-<span class="token function">T</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token operator">:</span><span class="token punctuation">)</span> <span class="token operator">=</span> T_S2<span class="token punctuation">;</span>
-
-<span class="token comment">%% Iterative solution</span>
-<span class="token keyword">while</span> iter <span class="token operator">&lt;</span> max_iter <span class="token operator">&amp;&amp;</span> err <span class="token operator">&gt;</span> tol
-	err <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
-	<span class="token keyword">for</span> <span class="token number">i</span> <span class="token operator">=</span> <span class="token number">2</span><span class="token operator">:</span>Ny<span class="token number">-1</span>
-		<span class="token keyword">for</span> <span class="token number">j</span> <span class="token operator">=</span> <span class="token number">2</span><span class="token operator">:</span>Nx<span class="token number">-1</span>
-			T_old <span class="token operator">=</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">if</span> <span class="token function">abs</span><span class="token punctuation">(</span>dx <span class="token operator">-</span> dy<span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">1e-10</span>
-				beta <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
-				<span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token number">0.25</span> <span class="token operator">*</span> <span class="token punctuation">(</span><span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">else</span>
-				dx2 <span class="token operator">=</span> dx<span class="token operator">^</span><span class="token number">2</span><span class="token punctuation">;</span> dy2 <span class="token operator">=</span> dy<span class="token operator">^</span><span class="token number">2</span><span class="token punctuation">;</span>
-				<span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token punctuation">(</span> <span class="token punctuation">(</span><span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">/</span> dy2 <span class="token operator">+</span> <span class="token punctuation">(</span><span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span> <span class="token number">j</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">/</span> dx2 <span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token operator">/</span>dx2 <span class="token operator">+</span> <span class="token number">1</span><span class="token operator">/</span>dy2<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-			<span class="token keyword">end</span>
-			err <span class="token operator">=</span> <span class="token function">max</span><span class="token punctuation">(</span>err<span class="token punctuation">,</span> <span class="token function">abs</span><span class="token punctuation">(</span><span class="token function">T</span><span class="token punctuation">(</span><span class="token number">i</span><span class="token punctuation">,</span><span class="token number">j</span><span class="token punctuation">)</span> <span class="token operator">-</span> T_old<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-		<span class="token keyword">end</span>
-	<span class="token keyword">end</span>
-	iter <span class="token operator">=</span> iter <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
-
-	<span class="token function">T</span><span class="token punctuation">(</span><span class="token keyword">end</span><span class="token punctuation">,</span> <span class="token operator">:</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token keyword">end</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token operator">:</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">T</span><span class="token punctuation">(</span><span class="token operator">:</span><span class="token punctuation">,</span> <span class="token keyword">end</span><span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token function">T</span><span class="token punctuation">(</span><span class="token operator">:</span><span class="token punctuation">,</span> <span class="token keyword">end</span> <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-	<span class="token function">T</span><span class="token punctuation">(</span><span class="token operator">:</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">=</span> T_S1<span class="token punctuation">;</span>
-	<span class="token function">T</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token operator">:</span><span class="token punctuation">)</span> <span class="token operator">=</span> T_S2<span class="token punctuation">;</span>
-<span class="token keyword">end</span>
-
-<span class="token function">fprintf</span><span class="token punctuation">(</span><span class="token string">'Converged in %d iterations. Max error = %.2e\n'</span><span class="token punctuation">,</span> iter<span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-<span class="token comment">%% Plot temperature distribution</span>
-figure<span class="token punctuation">;</span>
-<span class="token function">contourf</span><span class="token punctuation">(</span><span class="token function">linspace</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span>L<span class="token punctuation">,</span>Nx<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">linspace</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span>H<span class="token punctuation">,</span>Ny<span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token punctuation">,</span> <span class="token number">50</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-hold on<span class="token punctuation">;</span>
-colorbar<span class="token punctuation">;</span>
-<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'x (m)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'y (m)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'Steady-State Temperature Distribution (°C)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-axis equal tight<span class="token punctuation">;</span>
-<span class="token function">plot</span><span class="token punctuation">(</span>L<span class="token operator">/</span><span class="token number">2</span><span class="token punctuation">,</span> H<span class="token operator">/</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">'k+'</span><span class="token punctuation">,</span> <span class="token string">'MarkerSize'</span><span class="token punctuation">,</span> <span class="token number">10</span><span class="token punctuation">,</span> <span class="token string">'LineWidth'</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">text</span><span class="token punctuation">(</span>L<span class="token operator">/</span><span class="token number">2</span> <span class="token operator">+</span> <span class="token number">0.05</span><span class="token punctuation">,</span> H<span class="token operator">/</span><span class="token number">2</span><span class="token punctuation">,</span> <span class="token string">'O'</span><span class="token punctuation">,</span> <span class="token string">'FontSize'</span><span class="token punctuation">,</span> <span class="token number">12</span><span class="token punctuation">,</span> <span class="token string">'Color'</span><span class="token punctuation">,</span> <span class="token string">'k'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-figure<span class="token punctuation">;</span>
-<span class="token function">surf</span><span class="token punctuation">(</span><span class="token function">linspace</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span>L<span class="token punctuation">,</span>Nx<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">linspace</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span>H<span class="token punctuation">,</span>Ny<span class="token punctuation">)</span><span class="token punctuation">,</span> T<span class="token operator">'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">xlabel</span><span class="token punctuation">(</span><span class="token string">'x (m)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token function">ylabel</span><span class="token punctuation">(</span><span class="token string">'y (m)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token function">zlabel</span><span class="token punctuation">(</span><span class="token string">'Temperature (°C)'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">title</span><span class="token punctuation">(</span><span class="token string">'3D Temperature Distribution'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-<span class="token comment">%% Compute heat flux at center point O</span>
-ix <span class="token operator">=</span> <span class="token function">round</span><span class="token punctuation">(</span>Nx<span class="token operator">/</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-iy <span class="token operator">=</span> <span class="token function">round</span><span class="token punctuation">(</span>Ny<span class="token operator">/</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-dTdx <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token function">T</span><span class="token punctuation">(</span>iy<span class="token punctuation">,</span> ix<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token function">T</span><span class="token punctuation">(</span>iy<span class="token punctuation">,</span> ix<span class="token number">-1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span>dx<span class="token punctuation">)</span><span class="token punctuation">;</span>
-dTdy <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token function">T</span><span class="token punctuation">(</span>iy<span class="token operator">+</span><span class="token number">1</span><span class="token punctuation">,</span> ix<span class="token punctuation">)</span> <span class="token operator">-</span> <span class="token function">T</span><span class="token punctuation">(</span>iy<span class="token number">-1</span><span class="token punctuation">,</span> ix<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token punctuation">(</span><span class="token number">2</span><span class="token operator">*</span>dy<span class="token punctuation">)</span><span class="token punctuation">;</span>
-qx <span class="token operator">=</span> <span class="token operator">-</span>dTdx<span class="token punctuation">;</span>
-qy <span class="token operator">=</span> <span class="token operator">-</span>dTdy<span class="token punctuation">;</span>
-q_mag <span class="token operator">=</span> <span class="token function">sqrt</span><span class="token punctuation">(</span>qx<span class="token operator">^</span><span class="token number">2</span> <span class="token operator">+</span> qy<span class="token operator">^</span><span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">fprintf</span><span class="token punctuation">(</span><span class="token string">'\nAt center point O (%.3f, %.3f):\n'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span>ix<span class="token number">-1</span><span class="token punctuation">)</span><span class="token operator">*</span>dx<span class="token punctuation">,</span> <span class="token punctuation">(</span>iy<span class="token number">-1</span><span class="token punctuation">)</span><span class="token operator">*</span>dy<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">fprintf</span><span class="token punctuation">(</span><span class="token string">' dT/dx = %.4f °C/m, dT/dy = %.4f °C/m\n'</span><span class="token punctuation">,</span> dTdx<span class="token punctuation">,</span> dTdy<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">fprintf</span><span class="token punctuation">(</span><span class="token string">' qx = %.4f W/m², qy = %.4f W/m²\n'</span><span class="token punctuation">,</span> qx<span class="token punctuation">,</span> qy<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token function">fprintf</span><span class="token punctuation">(</span><span class="token string">' |q| = %.4f W/m²\n'</span><span class="token punctuation">,</span> q_mag<span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-</code></pre>
-<p>Output:<br>
-!(U:\Users\Enlink\Downloads\HW1_2.png)<br>
-At center point O:<br>
-dT/dx = 128.8489 °C/m, dT/dy = -129.7361 °C/m<br>
-qx = -128.8489 W/m², qy = 129.7361 W/m²<br>
-|q| = 182.8483 W/m²</p>
-
+%% Compute heat flux at center point O
+ix = round(Nx/2);
+iy = round(Ny/2);
+dTdx = (T(iy, ix+1) - T(iy, ix-1)) / (2dx);
+dTdy = (T(iy+1, ix) - T(iy-1, ix)) / (2dy);
+qx = -dTdx;
+qy = -dTdy;
+q_mag = sqrt(qx^2 + qy^2);
+fprintf('\nAt center point O (%.3f, %.3f):\n', (ix-1)dx, (iy-1)dy);
+fprintf(' dT/dx = %.4f °C/m, dT/dy = %.4f °C/m\n', dTdx, dTdy);
+fprintf(' qx = %.4f W/m², qy = %.4f W/m²\n', qx, qy);
+fprintf(' |q| = %.4f W/m²\n', q_mag);
+```
+#### Result & Output
+![Plot HW1_2](./HW1_2.jpg)
+At center point O:
+dT/dx = 128.8489 °C/m, dT/dy = -129.7361 °C/m
+qx = -128.8489 W/m², qy = 129.7361 W/m²
+|q| = 182.8483 W/m²
