@@ -162,7 +162,7 @@ q_mag <span class="token operator">=</span> <span class="token function">sqrt</s
 
 </code></pre>
 <p>Output:<br>
-<img src="https://github.com/Y1n9KC/Homework/blob/master/HW1_2.png" alt="enter image description here"><br>
+!(U:\Users\Enlink\Downloads\HW1_2.png)<br>
 At center point O:<br>
 dT/dx = 128.8489 °C/m, dT/dy = -129.7361 °C/m<br>
 qx = -128.8489 W/m², qy = 129.7361 W/m²<br>
